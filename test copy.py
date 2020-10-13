@@ -1,23 +1,22 @@
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import LabelEncoder
 import sklearn.metrics
 import numpy as np
 import math
-import pandas as pd
+
 
 
 def load_train_test_data(test_ratio=.3, random_state = 1):
-    balance_scale = pd.read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/balance-scale/balance-scale.data",
-            names=['Class Name', 'Left-Weigh', 'Left-Distance', 'Right-Weigh','Right-Distance'],header=None)
-    
-    class_le = LabelEncoder()
-    balance_scale['Class Name'] = class_le.fit_transform(balance_scale['Class Name'].values)
-    X = balance_scale.iloc[:,1:].values
-    y = balance_scale['Class Name'].values
+    iris = datasets.load_iris()
+    X = iris.data
+    y = iris.target
+    print('~~~~~~~~~~~~')
+    print('iris {0} \n x {1} \n y{2}'.format(iris,X,y))
+    sc = StandardScaler()
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size = test_ratio, random_state=random_state, stratify=y)
+    
     return X_train, X_test, y_train, y_test
 
 def scale_features(X_train, X_test):
@@ -57,18 +56,17 @@ def _gini(sample_y,n_classes):
 def main():
     X_train, X_test, y_train, y_test = load_train_test_data(test_ratio=.3,random_state=1)
     X_train_scale, X_test_scale = scale_features(X_train, X_test)
-    print("a {0} \n b{1} \n c--- {2} \n d---{3}".format(len(X_train),len(X_test),len(y_train),len(y_test)))
+    # print("a {0} \n b{1} \n c--- {2} \n d---{3}".format(len(X_train),len(X_test),len(y_train),len(y_test)))
     print("a {0} \n b{1} \n c--- {2} \n d---{3}".format(X_train,X_test,y_train,y_test))
     # print("a~~~ {0} \n b~~~{1} \n ".format(len(X_train_scale),len(X_test_scale)))
     # print("a~~~ {0} \n b~~~{1} \n ".format(X_train_scale,X_test_scale))
     # print(np.random.seed(123))
     print('----------------')
-    print(_gini(y_train,3))
-    print(_entropy(y_train,3))
+    # print(_gini(y_train,3))
     # print(type(y_train),y_train.dtype)
     # print(_gini(np.array([ 0,1]),2))
-    # print(_gini(np.array([ 0,0,0,0,0,0,0,0,0,2,2,2,2,2]),2))
-    # print(_entropy(np.array([ 0,0,0,0,0,0,2,2,2,2]),3))
+    print(_gini(y_train,3))
+    print(_entropy(np.array([ 0,0,0,0,0,0,2,2,2,2]),3))
 
 
     
