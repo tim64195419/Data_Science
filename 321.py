@@ -22,7 +22,12 @@ def gini_index(groups, classes):
     
     return gini
 
+def array_test():
+    a = [0,1,2,3,4,5,6,7,8,9]
+    print(a[:3])
+    print(a[3:])
 
 if __name__ == '__main__':
-    print(gini_index([[[1, 1,1], [1, -1,-1]], [[1, 1], [1, -1]]], [1, -1]))
-    print(gini_index([[[1, 0], [1, 0]], [[1, 1], [1, 1]]], [0, 1]))
+    # print(gini_index([[[1, 1,1], [1, -1,-1]], [[1, 1], [1, -1]]], [1, -1]))
+    # print(gini_index([[[1, 0], [1, 0]], [[1, 1], [1, 1]]], [0, 1]))
+    array_test()
