@@ -53,23 +53,20 @@ class DecisionTreeClassifier:
         # print('entropy number:', entropy)
         return entropy
     # X_train_scale, y_train 參考投影片 page.28
-
     def _feature_split(self, X, y, n_classes, node):
         m = y.size
         if m <= 1:
             return None, None
-        # print('x,y')
-        # print(X, y)
+        
         # Gini or Entropy of current node.
-        # if self.criterion == "gini":
-        #     best_criterion = self._gini(y, n_classes)
-        # else:
-        #     best_criterion = self._entropy(y, n_classes)
+        if self.criterion == "gini":
+            best_criterion = self._gini(y, n_classes)
+        else:
+            best_criterion = self._entropy(y, n_classes)
 
         best_idx, best_thr = None, None
 
         information = []
-
         for j in range(4):
             tem_train_scale = X
             index = np.argsort(tem_train_scale[:, j])
@@ -83,7 +80,7 @@ class DecisionTreeClassifier:
                     # print(sort_x[i], sort_x[i+1], midpoint)
                     # print(i, i+1)
                     find_midpoint.append([round(midpoint, 3), i+1])
-            print('find_midpointfind_midpoint', find_midpoint)
+            # print('find_midpointfind_midpoint', find_midpoint)
 
             # print('find_midpoint',)
             # # print(sort_x)
@@ -99,54 +96,63 @@ class DecisionTreeClassifier:
                         self._gini(left, n_classes), 3)
                     right_criterion_value = round(
                         self._gini(right, n_classes), 3)
-
                     information.append(
-                        [left_criterion_value, right_criterion_value, find_midpoint[i][1], j])
+                        [left_criterion_value, right_criterion_value, find_midpoint[i][1], j,find_midpoint[i][0]])
                 else:
                     left_criterion_value = round(
                         self._entropy(left, n_classes), 3)
                     right_criterion_value = round(
                         self._entropy(right, n_classes), 3)
                     information.append(
-                        [left_criterion_value, right_criterion_value, find_midpoint[i][1], j])
+                        [left_criterion_value, right_criterion_value, find_midpoint[i][1], j,find_midpoint[i][0]])
 
-            print('information', information)
-            # 整理資料 輸出idx,threhold
-            data = []
-            for i in range(len(information)):
-                for j in range(2):
-                    data.append(information[i][j])
-            return_information = []
-            for i in range(len(information)):
-                for j in range(2):
-                    if(min(data) == information[i][j]):
-                        for k in range(4):
-                            return_information.append(information[i][k])
-            for i in range(len(find_midpoint)):
+        # print('information~~~', information)
+        
+        return_information = []
+        data = []
+        sample = m
+        for i in range(len(information)):
+            left_sample = information[i][2]
+            right_sample = sample - left_sample
+            left_entropy = information[i][0]
+            right_entropy = information[i][1]
+            result = (left_sample/sample)*left_entropy + (right_sample/sample)*right_entropy
+            data.append(result)
+        # print('im here')
+        
+        for i in range(len(information)):
+            if min(data) == data[i]:
+                for j in range(len(information[i])):
+                    return_information.append(information[i][j])
+        # print('index',return_information)
+        
+        best_idx, best_thr = return_information[3], return_information[4]
 
-                if return_information[2] == find_midpoint[i][1]:
-                    print('12312312')
-                    print('find_midpoint', len(find_midpoint), find_midpoint)
-                    print('return_information')
-                    print(return_information)
-                    return_information.append(find_midpoint[i][0])
-                    best_idx, best_thr = return_information[3], return_information[4]
-                    print(best_idx, best_thr)
-
-        print('return_information')
-        # 找到對的idx thr 並找到idx index
         index_result = np.argsort(tem_train_scale[:, return_information[3]])
         sort_x_result = tem_train_scale[index_result]
         sort_y_result = y[index_result]
 
+        # print('index_result~~~~~~~~~~~')
+        
         # 返回左右子樹的X_train_scale && y_train data
         node.left_X_train_scale = sort_x_result[:return_information[2]]
         node.right_X_train_scale = sort_x_result[return_information[2]:]
         node.left_y_train = sort_y_result[:return_information[2]]
         node.right_y_train = sort_y_result[return_information[2]:]
+        # print('left info')
+        # print(node.left_X_train_scale,node.left_y_train)
+        # print('right info')
+        # print(node.right_X_train_scale,node.right_y_train)
 
-        print(return_information)
-
+        # print(return_information)
+        if best_thr == 0 or (return_information[0] ==0 and return_information[1] ==0):
+            print('This node is leaf')
+            print('return pre node')
+            return None, None
+        else:
+            print('find idx is : {0}, thr is : {1}'.format(best_idx, best_thr))
+            print('Left node ' + self.criterion + ' is : '+ str(return_information[0]))
+            print('Right node ' + self.criterion + ' is : '+ str(return_information[1]))
         return best_idx, best_thr
 
         # TODO: find the best split, loop through all the features, and consider all the
@@ -170,6 +176,7 @@ class DecisionTreeClassifier:
             num_samples=y.size,
             num_samples_per_class=num_samples_per_class,
             predicted_class=predicted_class,
+            
         )
 
         if depth < self.max_depth:
@@ -179,8 +186,8 @@ class DecisionTreeClassifier:
             node.feature_index = idx
             node.threshold = thr
 
-            print('idx,thr')
-            print(idx, thr)
+            # print('idx,thr')
+            # print(idx, thr)
 
             if idx is not None:
                 print('bulit left tree <-----')
@@ -190,10 +197,12 @@ class DecisionTreeClassifier:
                 print('bulit right tree ----->')
                 node.right = self._build_tree(
                     node.right_X_train_scale, node.right_y_train, depth+1)
-
+        else:
+            print('depth >= max_depth')
+        
         return node
+    
     # X_train_scale, y_train
-
     def fit(self, X, Y):
         # Fits to the given training data [0 1 2 ] = 3
         self.n_classes_ = len(np.unique(Y))
@@ -261,9 +270,11 @@ def main():
     #     sorted(X_train_scale[:, 0]), X_train_scale))
     print('--------start--------')
     # gini tree
+    # print('Bulit Decision Tree by gini')
     # accuracy_report(X_train_scale, y_train, X_test_scale,
     #                 y_test, criterion='gini', max_depth=4)
     # entropy tree
+    print('Bulit Decision Tree by entropy')
     accuracy_report(X_train_scale, y_train, X_test_scale,
                     y_test, criterion='entropy', max_depth=6)
 
